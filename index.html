@@ -65,6 +65,35 @@
     .file-opts .fname { font-size:0.75rem; color:#94a3b8; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .form-group input[type=file].has-opts { display:none; }
     .form-group input[readonly] { background-color:#0b1a2b; border-color:rgba(0,194,255,.35); color:#34d399; font-weight:700; cursor:not-allowed; }
+
+    /* ===== MOBILE VIEW ===== */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed !important; bottom: 0; left: 0; right: 0; top: auto !important; width: 100% !important; height: auto !important; z-index: 60; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)) !important; border-right: none; border-top: 1px solid #1e293b; background: rgba(6,10,18,.97); backdrop-filter: blur(8px); }
+      .sidebar > div { display: block; }
+      .sidebar > div > div:first-child { display: none; }
+      .sidebar ul { display: flex; gap: 6px; margin: 0; }
+      .sidebar ul > li { flex: 1; }
+      .nav-btn { padding: 8px 4px; justify-content: center; }
+      .nav-btn span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; line-height: 1.1; text-align: center; }
+      .nav-btn span i { margin: 0 !important; font-size: 18px; }
+      header { padding-left: 14px !important; padding-right: 10px !important; }
+      header h1 { font-size: 0.9rem; }
+      .api-txt { display: none; }
+      header span.rounded-full { padding: 6px 8px; }
+      .flex-1.flex.flex-col.min-w-0 > .p-6 { padding: 12px 12px 96px 12px !important; }
+      .whizz-card { padding: 14px; }
+      .form-grid-3 { grid-template-columns: 1fr !important; gap: 14px; }
+      .form-group input, .form-group select { font-size: 16px; padding: 12px 14px; }
+      .grid.grid-cols-3 { grid-template-columns: 1fr !important; }
+      .flt-bar { gap: 10px; }
+      .flt-bar .form-group { min-width: calc(50% - 5px); flex: 1 1 calc(50% - 5px); }
+      .flt-bar .form-group:nth-child(n+3) { flex-basis: 100%; }
+      .ms-wrap { min-width: 100%; }
+      .ms-menu { max-width: 100%; }
+      .flt-clear { width: 100%; }
+      .file-opts button { padding: 10px 14px; font-size: 0.85rem; }
+      .submit-btn { padding: 16px; }
+    }
   </style>
 </head>
 <body class="flex min-h-screen" data-tab="allotment">
@@ -86,7 +115,7 @@
   <div class="flex-1 flex flex-col min-w-0">
     <header class="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-50">
       <h1 class="text-base font-bold text-white flex items-center gap-2" id="main-title">Rider Allotment Form</h1>
-      <span class="bg-blue-900/40 text-cyan-400 text-xs px-3 py-1 rounded-full border border-cyan-500/30 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> Google Sheets API Active</span>
+      <span class="bg-blue-900/40 text-cyan-400 text-xs px-3 py-1 rounded-full border border-cyan-500/30 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> <span class="api-txt">Google Sheets API Active</span></span>
     </header>
 
     <div class="p-6 overflow-y-auto flex-1">
@@ -113,7 +142,8 @@
             <div class="form-group only-Allotment"><label>IFSC Code</label><input type="text" id="allot_ifsc" placeholder="IFSC Code"></div>
             <div class="form-group only-Allotment"><label>Weekly Rent (₹) *</label><input type="number" id="allot_weekly_rent" required placeholder="e.g. 1470"></div>
             <div class="form-group only-Allotment" id="grp_onboarding"><label>On Boarding Amount (₹)</label><input type="number" id="allot_onboarding_amt" placeholder="e.g. 1500"></div>
-            <div class="form-group only-Allotment"><label>Aadhar Card Image</label><input type="file" accept="image/*" id="allot_aadhar_img"></div>
+            <div class="form-group only-Allotment"><label>Aadhar Card Front</label><input type="file" accept="image/*" id="allot_aadhar_front_img"></div>
+            <div class="form-group only-Allotment"><label>Aadhar Card Back</label><input type="file" accept="image/*" id="allot_aadhar_back_img"></div>
             <div class="form-group only-Allotment"><label>Pan Card Image</label><input type="file" accept="image/*" id="allot_pan_img"></div>
             <div class="form-group only-Allotment"><label>Bank Passbook/Cheque Image</label><input type="file" accept="image/*" id="allot_passbook_img"></div>
             <div class="form-group only-Allotment"><label>Vehicle Front Image</label><input type="file" accept="image/*" id="allot_v_front_img"></div>
@@ -515,13 +545,13 @@
       try {
         // Saari images ek saath (parallel) upload - fast submit
         if (formType === 'Allotment') {
-          const [pay, aad, pan, pass, vf, vb, fm] = await Promise.all([
-            getImgUrl('f_payment_img'), getImgUrl('allot_aadhar_img'),
+          const [pay, aad, aadB, pan, pass, vf, vb, fm] = await Promise.all([
+            getImgUrl('f_payment_img'), getImgUrl('allot_aadhar_front_img'), getImgUrl('allot_aadhar_back_img'),
             getImgUrl('allot_pan_img'), getImgUrl('allot_passbook_img'),
             getImgUrl('allot_v_front_img'), getImgUrl('allot_v_back_img'),
             getImgUrl('allot_form_img')
           ]);
-          payload.paymentImgUrl = pay; payload.aadharImgUrl = aad; payload.panImgUrl = pan;
+          payload.paymentImgUrl = pay; payload.aadharImgUrl = aad; payload.aadharBackImgUrl = aadB; payload.panImgUrl = pan;
           payload.passbookImgUrl = pass; payload.vFrontImgUrl = vf; payload.vBackImgUrl = vb; payload.formImgUrl = fm;
           payload.allotDate = v('f_date');
           payload.bankAcc = v('allot_bank_acc');
